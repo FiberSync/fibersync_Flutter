@@ -35,9 +35,11 @@ class HomePage extends StatelessWidget {
               SizedBox(height: 10.h),
               Text(
                 'Efficient solutions for managing agents and operations in the textile industry.',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.montserrat(
                   fontSize: 10.sp,
                   color: Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontStyle: FontStyle.italic
                 ),
               ),
               SizedBox(height: 30.h),
@@ -55,6 +57,7 @@ class HomePage extends StatelessWidget {
                   _buildSquareButton(context, 'Dyeing Agent', Icons.color_lens, '/dyeingAgent'),
                   _buildSquareButton(context, 'Manufacturing Agent', Icons.factory, '/manufacturingAgent'),
                    _buildSquareButton(context, 'Weaving Agent', Icons.adobe_sharp, '/weavingAgent'),
+                    _buildSquareButton(context, 'AI Chatbot', Icons.computer, '/chatbot'),
                 ],
               ),
             ],

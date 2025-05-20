@@ -1,4 +1,5 @@
 import 'package:fibersync_flutter/pages/WeavingAgent.dart';
+import 'package:fibersync_flutter/pages/chatbot.dart';
 import 'package:fibersync_flutter/pages/dyeingAgent.dart';
 import 'package:fibersync_flutter/pages/home.dart';
 import 'package:fibersync_flutter/pages/login.dart';
@@ -8,12 +9,13 @@ import 'package:fibersync_flutter/pages/spinning.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'package:flutter_gemini/flutter_gemini.dart';
 
 import 'pages/onboard1.dart';
 
 
 void main() {
+  Gemini.init(apiKey: 'AIzaSyCRydem8_aNmql9J2z3ITvY1O6wyxVAtKY');
   runApp(const MyApp());
 }
 
@@ -42,6 +44,7 @@ class MyApp extends StatelessWidget {
            '/weavingAgent': (context) => WeavingAgentPage(),
            '/dyeingAgent': (context) => DyeingAgentPage(),
            "/manufacturingAgent": (context) => ManufacturingAgentPage(),
+            "/chatbot": (context) => ChatScreen(),
         },
       ),
     );

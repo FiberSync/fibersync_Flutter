@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart'; // For formatting the date
 import 'package:google_fonts/google_fonts.dart';
 
 class WeavingAgentPage extends StatefulWidget {
@@ -11,33 +14,80 @@ class WeavingAgentPage extends StatefulWidget {
 class _WeavingAgentPageState extends State<WeavingAgentPage> {
   TextEditingController orderIdController = TextEditingController();
   TextEditingController batchIdController = TextEditingController();
-  TextEditingController statusController = TextEditingController();
   TextEditingController messageController = TextEditingController();
   TextEditingController roleController = TextEditingController();
   TextEditingController dateController = TextEditingController();
-  
-  // Quality Matrices Controllers
+
   TextEditingController endsDownController = TextEditingController();
   TextEditingController picksDownController = TextEditingController();
   TextEditingController fabricDefectsController = TextEditingController();
   TextEditingController gsmController = TextEditingController();
 
-  // This variable will hold the selected date
   DateTime selectedDate = DateTime.now();
+  String selectedStatus = 'Pending';
 
-  // Function to show date picker
+  final List<String> statusOptions = ['Pending', 'On Loom', 'Completed', 'On Hold'];
+
+  Future<void> _updateWeavingRecord() async {
+    final url = Uri.parse('https://fiberportal-backend.vercel.app/api/weaving/updateWeavingFAapp');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "orderId": orderIdController.text.trim(),
+          "batchNumber": batchIdController.text.trim(),
+          "status": selectedStatus,
+          "remarkMessage": messageController.text.trim(),
+          "role": roleController.text.trim(),
+          "qualityMetrics": {
+            "endsDown": endsDownController.text.trim(),
+            "picksDown": picksDownController.text.trim(),
+            "fabricDefects": fabricDefectsController.text.trim(),
+            "GSM": gsmController.text.trim(),
+          }
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.success,
+          animType: AnimType.bottomSlide,
+          title: 'Success',
+          desc: data['message'] ?? 'Record updated successfully',
+          btnOkOnPress: () {},
+        ).show();
+      } else {
+        throw Exception(data['message'] ?? 'Unknown error');
+      }
+    } catch (e) {
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.error,
+        animType: AnimType.topSlide,
+        title: 'Error',
+        desc: e.toString(),
+        btnOkOnPress: () {},
+      ).show();
+    }
+  }
+
   Future<void> _selectDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(
+    final picked = await showDatePicker(
       context: context,
       initialDate: selectedDate,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
-    ) ?? selectedDate;
+    );
 
     if (picked != null && picked != selectedDate) {
       setState(() {
         selectedDate = picked;
-        dateController.text = DateFormat('yyyy-MM-dd').format(selectedDate);
+        dateController.text = DateFormat('yyyy-MM-dd').format(picked);
       });
     }
   }
@@ -46,150 +96,128 @@ class _WeavingAgentPageState extends State<WeavingAgentPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Color(0xFF39FF14),
+        backgroundColor: const Color(0xFF39FF14),
         title: Text(
           'Weaving Agent',
-          style: GoogleFonts.poppins(fontSize: 15.sp, fontWeight: FontWeight.w800, color: Colors.black),
-        ),
-      ),
-      body: SingleChildScrollView( // Wrapping the body in SingleChildScrollView for scrollability
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Weaving Agent Remarks',
-                style: TextStyle(fontSize: 24.sp, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20.h),
-              // Existing Fields
-              TextField(
-                controller: orderIdController,
-                decoration: InputDecoration(
-                  labelText: 'Order ID',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: batchIdController,
-                decoration: InputDecoration(
-                  labelText: 'Batch ID',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: statusController,
-                decoration: InputDecoration(
-                  labelText: 'Status',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: messageController,
-                decoration: InputDecoration(
-                  labelText: 'Message',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 4,
-              ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: roleController,
-                decoration: InputDecoration(
-                  labelText: 'Role',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              // Date Picker Field
-              GestureDetector(
-                onTap: () => _selectDate(context),
-                child: AbsorbPointer(
-                  child: TextField(
-                    controller: dateController,
-                    decoration: InputDecoration(
-                      labelText: 'Date',
-                      border: OutlineInputBorder(),
-                      suffixIcon: Icon(Icons.calendar_today),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16.h),
-              // Quality Matrices Fields
-              TextField(
-                controller: endsDownController,
-                decoration: InputDecoration(
-                  labelText: 'Ends Down',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: picksDownController,
-                decoration: InputDecoration(
-                  labelText: 'Picks Down',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: fabricDefectsController,
-                decoration: InputDecoration(
-                  labelText: 'Fabric Defects',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              SizedBox(height: 16.h),
-              TextField(
-                controller: gsmController,
-                decoration: InputDecoration(
-                  labelText: 'GSM',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              SizedBox(height: 20.h),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle update button press
-                  String orderId = orderIdController.text;
-                  String batchId = batchIdController.text;
-                  String status = statusController.text;
-                  String message = messageController.text;
-                  String role = roleController.text;
-                  String date = dateController.text;
-                  String endsDown = endsDownController.text;
-                  String picksDown = picksDownController.text;
-                  String fabricDefects = fabricDefectsController.text;
-                  String gsm = gsmController.text;
-
-                  // Add the logic for submitting the data (e.g., sending it to a database or API)
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('Data Updated: $orderId, $batchId, $status, $message, $role, $date, $endsDown, $picksDown, $fabricDefects, $gsm'),
-                  ));
-                },
-                child: Text('Update'),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15.h),
-                  minimumSize: Size(double.infinity, 50.h),
-                  backgroundColor: Color(0xFF39FF14),
-                  foregroundColor: Colors.black,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-            ],
+          style: GoogleFonts.poppins(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.w800,
+            color: const Color.fromARGB(195, 0, 0, 0),
           ),
         ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Weaving Agent Remarks',
+              style: GoogleFonts.poppins(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w800,
+                color: const Color.fromARGB(195, 0, 0, 0),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildTextField(orderIdController, 'Order ID'),
+            const SizedBox(height: 16),
+            _buildTextField(batchIdController, 'Batch ID'),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: selectedStatus,
+              items: statusOptions
+                  .map((status) => DropdownMenuItem(value: status, child: Text(status)))
+                  .toList(),
+              onChanged: (value) {
+                setState(() => selectedStatus = value!);
+              },
+              decoration: const InputDecoration(
+                labelText: 'Status',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(messageController, 'Message', maxLines: 3),
+            const SizedBox(height: 16),
+            _buildTextField(roleController, 'Role'),
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () => _selectDate(context),
+              child: AbsorbPointer(
+                child: TextField(
+                  controller: dateController,
+                  decoration: const InputDecoration(
+                    labelText: 'Date',
+                    border: OutlineInputBorder(),
+                    suffixIcon: Icon(Icons.calendar_today),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Quality Metrics',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF39FF14)),
+            ),
+            const SizedBox(height: 12),
+            _buildQualityMetricField(endsDownController, 'Ends Down'),
+            const SizedBox(height: 16),
+            _buildQualityMetricField(picksDownController, 'Picks Down'),
+            const SizedBox(height: 16),
+            _buildQualityMetricField(fabricDefectsController, 'Fabric Defects'),
+            const SizedBox(height: 16),
+            _buildQualityMetricField(gsmController, 'GSM'),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _updateWeavingRecord,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF39FF14),
+                foregroundColor: Colors.black,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+              ),
+              child: Text(
+                'Update',
+                style: GoogleFonts.spaceGrotesk(
+                  fontSize: 12.sp,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, {int maxLines = 1}) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+    );
+  }
+
+  Widget _buildQualityMetricField(TextEditingController controller, String label) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white),
+      ),
+      child: TextField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 12),
+        ),
+        keyboardType: TextInputType.number,
       ),
     );
   }

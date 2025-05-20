@@ -50,7 +50,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                   borderRadius: BorderRadius.circular(20), // Rounded corners
                   child: Image.network(
                     onboardingData[index]['image']!,
-                    height: 500,
+                    height: 400,
                     fit: BoxFit.cover, // Ensures the image fills the box nicely
                     width: 300, // Makes the image span the available width
                   ),
@@ -65,10 +65,10 @@ class _OnboardingViewState extends State<OnboardingView> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 14),
                 Text(
                   onboardingData[index]['desc']!,
-                  style:  GoogleFonts.montserrat(fontSize: 12, color: Colors.black87),
+                  style:  GoogleFonts.montserrat(fontSize: 12,fontWeight: FontWeight.w700,fontStyle: FontStyle.italic, color: Colors.black87),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -89,8 +89,9 @@ class _OnboardingViewState extends State<OnboardingView> {
                   backgroundColor: const Color(0xFF39FF14),
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
+
                 ),
-                child: const Text("Get Started"),
+                child: Text("Get Started",style: GoogleFonts.spaceGrotesk(fontSize: 15,fontWeight: FontWeight.w900),),
               )
             : Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
